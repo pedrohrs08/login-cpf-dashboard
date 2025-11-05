@@ -18,7 +18,7 @@ function cpf_travel_admin_page() {
             <?php wp_nonce_field('cpf_travel_add_nonce'); ?>
             <input type="hidden" name="action" value="cpf_travel_add_booking_form" />
             <table class="form-table">
-                <tr><th><label for="cpf">CPF (ou User ID)</label></th>
+                <tr><th><label for="cpf">CPF (ou User ID) isso é um teste se vai funcionar?</label></th>
                     <td><input type="text" name="cpf" id="cpf" /> ou <input type="text" name="user_id" id="user_id" /></td></tr>
                 <tr><th><label for="flight_code">Flight code</label></th><td><input type="text" name="flight_code" id="flight_code" required /></td></tr>
                 <tr><th><label for="airline">Airline</label></th><td><input type="text" name="airline" id="airline" /></td></tr>
