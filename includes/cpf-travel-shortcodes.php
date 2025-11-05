@@ -18,29 +18,16 @@ function cpf_travel_user_trips_shortcode( $atts ) {
     foreach( $trips as $t ) {
         echo '<div class="col-md-6 mb-3">';
         echo '<div class="card p-3">';
-        echo '<h4>' . esc_html( $t->flight_code ) . ' <small class="text-muted">' . esc_html( $t->airline ) . '</small></h4>';
-        echo '<p><strong>Origem:</strong> ' . esc_html( $t->origin ) . ' <strong>Destino:</strong> ' . esc_html( $t->destination ) . '</p>';
-        if ( $t->departure ) echo '<p><strong>Partida:</strong> ' . esc_html( date_i18n('d/m/Y H:i', strtotime($t->departure)) ) . '</p>';
-        if ( $t->arrival ) echo '<p><strong>Chegada:</strong> ' . esc_html( date_i18n('d/m/Y H:i', strtotime($t->arrival)) ) . '</p>';
+        echo '<h4>Booking ID: ' . $t->id . '</h4>';
 
-        if ( ! empty($t->return_flight_code) ) {
+        if ( ! empty($t->segments) ) {
             echo '<hr>';
-            echo '<p><strong>Voo de Retorno:</strong> ' . esc_html($t->return_flight_code) . ' <small class="text-muted">' . esc_html($t->airline) . '</small></p>';
-            echo '<p><strong>Origem (volta):</strong> ' . esc_html($t->return_origin) . ' <strong>Destino (volta):</strong> ' . esc_html($t->return_destination) . '</p>';
-            if ( $t->return_departure ) echo '<p><strong>Partida (volta):</strong> ' . esc_html( date_i18n('d/m/Y H:i', strtotime($t->return_departure)) ) . '</p>';
-            if ( $t->return_arrival ) echo '<p><strong>Chegada (volta):</strong> ' . esc_html( date_i18n('d/m/Y H:i', strtotime($t->return_arrival)) ) . '</p>';
-        }
-
-        if ( ! empty($t->stops) ) {
-            $stops = json_decode($t->stops);
-            if ( json_last_error() === JSON_ERROR_NONE && ! empty($stops) ) {
-                echo '<hr><p><strong>Paradas / Escalas:</strong></p><ul>';
-                foreach ( $stops as $s ) {
-                    $local = isset($s->local) ? esc_html($s->local) : '';
-                    $tempo = isset($s->tempo) ? esc_html($s->tempo) : '';
-                    echo '<li>' . $local . ($tempo ? ' (' . $tempo . ')' : '') . '</li>';
-                }
-                echo '</ul>';
+            foreach ($t->segments as $segment) {
+                echo '<p><strong>Flight:</strong> ' . esc_html($segment->flight_code) . ' <small class="text-muted">' . esc_html($segment->airline) . '</small></p>';
+                echo '<p><strong>Origin:</strong> ' . esc_html($segment->origin) . ' <strong>Destination:</strong> ' . esc_html($segment->destination) . '</p>';
+                if ( $segment->departure ) echo '<p><strong>Departure:</strong> ' . esc_html( date_i18n('d/m/Y H:i', strtotime($segment->departure)) ) . '</p>';
+                if ( $segment->arrival ) echo '<p><strong>Arrival:</strong> ' . esc_html( date_i18n('d/m/Y H:i', strtotime($segment->arrival)) ) . '</p>';
+                echo '<hr>';
             }
         }
 

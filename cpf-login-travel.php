@@ -35,3 +35,11 @@ function cpf_travel_deactivate() {
 }
 
 add_action( 'cpf_travel_sync_hook', 'cpf_travel_sync_users' );
+
+add_action( 'admin_enqueue_scripts', 'cpf_travel_admin_scripts' );
+function cpf_travel_admin_scripts($hook) {
+    if ($hook !== 'toplevel_page_cpf-travel-bookings') {
+        return;
+    }
+    wp_enqueue_script('cpf-travel-admin', LOGIN_URL . 'assets/js/admin.js', ['jquery'], '1.0', true);
+}

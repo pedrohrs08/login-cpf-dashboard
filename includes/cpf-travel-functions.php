@@ -1,11 +1,12 @@
-<?php
+<?
+
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 function cpf_travel_add_booking( $data ) {
     global $wpdb;
     $table = $wpdb->prefix . 'travel_bookings';
 
-    $cpf = isset($data['cpf']) && !empty($data['cpf']) ? preg_replace('/\\D/','', $data['cpf']) : null;
+    $cpf = isset($data['cpf']) && !empty($data['cpf']) ? preg_replace('/\D/','', $data['cpf']) : null;
     $user_id = isset($data['user_id']) && !empty($data['user_id']) ? intval($data['user_id']) : null;
 
     if ( $cpf && ! $user_id ) {
@@ -16,51 +17,8 @@ function cpf_travel_add_booking( $data ) {
     $fields = [
         'user_id' => $user_id,
         'cpf' => $cpf,
-        'flight_code' => isset($data['flight_code']) ? sanitize_text_field($data['flight_code']) : '',
-        'airline' => isset($data['airline']) ? sanitize_text_field($data['airline']) : null,
-        'origin' => isset($data['origin']) ? sanitize_text_field($data['origin']) : null,
-        'destination' => isset($data['destination']) ? sanitize_text_field($data['destination']) : null,
-        'departure' => isset($data['departure']) ? sanitize_text_field($data['departure']) : null,
-        'arrival' => isset($data['arrival']) ? sanitize_text_field($data['arrival']) : null,
-        'return_flight_code' => isset($data['return_flight_code']) ? sanitize_text_field($data['return_flight_code']) : null,
-        'return_origin' => isset($data['return_origin']) ? sanitize_text_field($data['return_origin']) : null,
-        'return_destination' => isset($data['return_destination']) ? sanitize_text_field($data['return_destination']) : null,
-        'return_departure' => isset($data['return_departure']) ? sanitize_text_field($data['return_departure']) : null,
-        'return_arrival' => isset($data['return_arrival']) ? sanitize_text_field($data['return_arrival']) : null,
         'status' => isset($data['status']) ? sanitize_text_field($data['status']) : 'confirmed',
     ];
-
-    if ( isset($data['stops']) ) {
-        if ( is_array($data['stops']) ) {
-            $fields['stops'] = wp_json_encode($data['stops']);
-        } else {
-            $decoded = json_decode($data['stops']);
-            if ( json_last_error() === JSON_ERROR_NONE ) {
-                $fields['stops'] = wp_json_encode($decoded);
-            } else {
-                $raw = sanitize_text_field($data['stops']);
-                $parts = preg_split('/[;\n]+/', $raw, -1, PREG_SPLIT_NO_EMPTY);
-                $arr = [];
-                foreach ($parts as $p) {
-                    $p = trim($p);
-                    if (strpos($p, ':') !== false) {
-                        list($local,$tempo) = array_map('trim', explode(':', $p, 2));
-                        $arr[] = ['local' => $local, 'tempo' => $tempo];
-                    } else {
-                        $arr[] = ['local' => $p, 'tempo' => ''];
-                    }
-                }
-                if (!empty($arr)) $fields['stops'] = wp_json_encode($arr);
-                else $fields['stops'] = null;
-            }
-        }
-    } else {
-        $fields['stops'] = null;
-    }
-
-    if ( empty( $fields['flight_code'] ) ) {
-        return new WP_Error('no_flight_code', 'flight_code é obrigatório.');
-    }
 
     $inserted = $wpdb->insert( $table, $fields );
     if ( $inserted === false ) {
@@ -70,9 +28,31 @@ function cpf_travel_add_booking( $data ) {
     return $wpdb->insert_id;
 }
 
+function cpf_travel_add_segment($booking_id, $segment_data) {
+    global $wpdb;
+    $table = $wpdb->prefix . 'flight_segments';
+
+    $fields = [
+        'booking_id' => $booking_id,
+        'flight_code' => isset($segment_data['flight_code']) ? sanitize_text_field($segment_data['flight_code']) : '',
+        'airline' => isset($segment_data['airline']) ? sanitize_text_field($segment_data['airline']) : null,
+        'origin' => isset($segment_data['origin']) ? sanitize_text_field($segment_data['origin']) : null,
+        'destination' => isset($segment_data['destination']) ? sanitize_text_field($segment_data['destination']) : null,
+        'departure' => isset($segment_data['departure']) ? sanitize_text_field($segment_data['departure']) : null,
+        'arrival' => isset($segment_data['arrival']) ? sanitize_text_field($segment_data['arrival']) : null,
+    ];
+
+    if ( empty( $fields['flight_code'] ) ) {
+        return new WP_Error('no_flight_code', 'flight_code is required for each segment.');
+    }
+
+    return $wpdb->insert( $table, $fields );
+}
+
 function cpf_travel_get_bookings( $user_id = null, $args = [] ) {
    global $wpdb;
     $table = $wpdb->prefix . 'travel_bookings';
+
     $defaults = [
         'per_page' => 20,
         'page' => 1,
@@ -93,7 +73,19 @@ function cpf_travel_get_bookings( $user_id = null, $args = [] ) {
     }
 
     $rows = $wpdb->get_results( $query );
+
+    foreach ($rows as $row) {
+        $row->segments = cpf_travel_get_segments($row->id);
+    }
+
     return $rows;
+}
+
+function cpf_travel_get_segments($booking_id) {
+    global $wpdb;
+    $table = $wpdb->prefix . 'flight_segments';
+    $query = $wpdb->prepare("SELECT * FROM $table WHERE booking_id = %d ORDER BY departure ASC", $booking_id);
+    return $wpdb->get_results($query);
 }
 
 function travel_exists($user_id = null, $args = []){
