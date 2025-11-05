@@ -2,7 +2,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 add_action('admin_menu', function(){
-    add_menu_page('Travel Bookings', 'Travel Bookings', 'manage_options', 'cpf-travel-bookings', 'cpf_travel_admin_page', 'dashicons-airplane', 26);
+    add_menu_page('Travel Bookings', 'Travel Bookings', 'manage_options', 'cpf-travel-bookings', 'cpf_travel_admin_page', 'dashicons-airplane', 27);
 });
 
 function cpf_travel_admin_page() {
@@ -23,15 +23,15 @@ function cpf_travel_admin_page() {
                 <tr><th><label for="flight_code">Flight code</label></th><td><input type="text" name="flight_code" id="flight_code" required /></td></tr>
                 <tr><th><label for="airline">Airline</label></th><td><input type="text" name="airline" id="airline" /></td></tr>
                 <tr><th><label for="origin">Origin</label></th><td><input type="text" name="origin" id="origin" /></td></tr>
-                <tr><th><label for="destination">Destination</label></th><td><input type="text" name="destination" id="destination" /></td></tr>
-                <tr><th><label for="departure">Departure (YYYY-MM-DD HH:MM:SS)</label></th><td><input type="text" name="departure" id="departure" /></td></tr>
-                <tr><th><label for="arrival">Arrival (YYYY-MM-DD HH:MM:SS)</label></th><td><input type="text" name="arrival" id="arrival" /></td></tr>
+                <tr><th><label for="destination">Destination</label></th><td><input type="text" name="destination" id="destination" /></td></tr>                
+                <tr><th><label for="departure">Departure</label></th><td><input type="datetime-local" name="departure" id="departure" /></td></tr>
+                <tr><th><label for="arrival">Arrival</label></th><td><input type="datetime-local" name="arrival" id="arrival" /></td></tr>
                 <tr><td><hr></td></tr>
                 <tr><th><label for="return_flight_code">Return Flight code</label></th><td><input type="text" name="return_flight_code" id="return_flight_code"></td></tr>
                 <tr><th><label for="return_origin">Return Origin</label></th><td><input type="text" name="return_origin" id="return_origin"></td></tr>
                 <tr><th><label for="return_destination">Return Destination</label></th><td><input type="text" name="return_destination" id="return_destination"></td></tr>
-                <tr><th><label for="return_departure">Return Departure (YYYY-MM-DD HH:MM:SS)</label></th><td><input type="text" name="return_departure" id="return_departure"></td></tr>
-                <tr><th><label for="return_arrival">Return Arrival (YYYY-MM-DD HH:MM:SS)</label></th><td><input type="text" name="return_arrival" id="return_arrival"></td></tr>
+                <tr><th><label for="return_departure">Return Departure</label></th><td><input type="datetime-local" name="return_departure" id="return_departure"></td></tr>
+                <tr><th><label for="return_arrival">Return Arrival</label></th><td><input type="datetime-local" name="return_arrival" id="return_arrival"></td></tr>
                 <tr><td><hr></td></tr>
                 <tr><th><label for="stops">Stops</label></th>
                 <td><textarea name="stops" id="stops" rows="4" cols="50" placeholder='Ex: [{"local":"LIS","tempo":"1h30"},{"local":"MAD","tempo":"2h"}] OR LIS:1h30;MAD:2h'></textarea></td></tr>
@@ -87,7 +87,11 @@ function cpf_travel_admin_handle_form() {
 
     $insert = cpf_travel_add_booking($user_id, $data);
     if ( is_wp_error($insert) ) {
-        wp_redirect(add_query_arg('msg','error', admin_url('admin.php?page=cpf-travel-bookings')));
+        $url = admin_url('admin.php?page=cpf-travel-bookings');
+        $url = add_query_arg('msg', 'error', $url);
+        $url = add_query_arg('code', $insert->get_error_code(), $url);
+        $url = add_query_arg('message', $insert->get_error_message(), $url);    
+        wp_redirect($url);
         exit;
     }
 

@@ -1,7 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function cpf_travel_add_booking( $user_id, $data ) {
+function cpf_travel_add_booking( $data ) {
     global $wpdb;
     $table = $wpdb->prefix . 'travel_bookings';
 
@@ -9,7 +9,8 @@ function cpf_travel_add_booking( $user_id, $data ) {
     $user_id = isset($data['user_id']) && !empty($data['user_id']) ? intval($data['user_id']) : null;
 
     if ( $cpf && ! $user_id ) {
-        $user_id = $wpdb->get_var( $wpdb->prepare("\n SELECT user_id FROM {$wpdb->usermeta}\n WHERE meta_key = 'cpf' AND meta_value = %s LIMIT 1\n ", $cpf) );
+        $found_user_id = $wpdb->get_var( $wpdb->prepare("SELECT user_id FROM {$wpdb->usermeta} WHERE meta_key = 'cpf' AND meta_value = %s LIMIT 1", $cpf) );
+        $user_id = $found_user_id ? (int) $found_user_id : null;
     }
 
     $fields = [
@@ -88,11 +89,15 @@ function cpf_travel_get_bookings( $user_id = null, $args = [] ) {
         $cpf = preg_replace('/\\D/','', $args['cpf']);
         $query = $wpdb->prepare( "SELECT * FROM $table WHERE cpf = %s ORDER BY departure $order LIMIT %d OFFSET %d", $cpf, intval($args['per_page']), $offset );
     }else {
-        $query = $wpdb->prepare( "SELECT * FROM $table ORDER BY departure $order LIMIT %d OFFSET %d", intval($args['per_page']), $offset, $offset );
+        $query = $wpdb->prepare( "SELECT * FROM $table ORDER BY departure $order LIMIT %d OFFSET %d", intval($args['per_page']), $offset );
     }
 
     $rows = $wpdb->get_results( $query );
     return $rows;
+}
+
+function travel_exists($user_id = null, $args = []){
+    return ! empty(cpf_travel_get_bookings($user_id, $args));
 }
 
 function cpf_travel_sync_users() {

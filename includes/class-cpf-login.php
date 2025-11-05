@@ -56,37 +56,11 @@ class CPF_Login {
 
         if (!empty($users)) {
             $user = $users[0];
-        } else {
-            $table = $wpdb->prefix . 'travel_bookings';
-            $row = $wpdb->get_row(
-                $wpdb->prepare("SELECT * FROM $table WHERE cpf = %s LIMIT 1", $cpf)
-            );
-
-            if (!$row) {
-                wp_send_json_error(['msg' => 'CPF não cadastrado em nossa base.']);
-            }
-
-            $login = 'user_' . $cpf;
-            $email = $row->cpf . '@temp.user';
-            $password = wp_generate_password();
-
-            $user_id = wp_create_user($login, $password, $email);
-
-            if (is_wp_error($user_id)) {
-                wp_send_json_error(['msg' => 'Falha ao criar usuário automaticamente.']);
-            }
-
-            wp_update_user([
-                'ID'           => $user_id,
-                'display_name' => 'Viajante ' . substr($cpf, -3),
-                'user_nicename'=> sanitize_title('user-' . $cpf)
-            ]);
-
-            update_user_meta($user_id, 'cpf', $cpf);
-
-            $wpdb->update($table, ['user_id' => $user_id], ['cpf' => $cpf]);
-
-            $user = get_user_by('id', $user_id);
+        } else { // User with this CPF does not exist
+            // We check the bookings table to provide a more specific message, but we do not create a user.
+            $booking_exists = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}travel_bookings WHERE cpf = %s LIMIT 1", $cpf));
+            $message = $booking_exists ? 'Seu CPF foi encontrado, mas seu usuário ainda não foi criado. Contate o administrador.' : 'CPF não cadastrado em nossa base.';
+            wp_send_json_error(['msg' => $message]);
         }
 
         wp_set_current_user($user->ID);
