@@ -2,9 +2,9 @@
 /**
  * Plugin Name: CPF Login Travel
  * Description: This plugin is a test - adds the ability to log in to WordPress using the user's CPF (Individual Taxpayer Registry). Only users previously registered by the administrator will be able to access the restricted area. After login validation, the user will be redirected to the personalized Dashboard, which displays their flight information.
- * Version: 1.1.4
- * Author: Cardoso Wellington
- * Author URI: https://github.com/cardosowellington
+ * Version: 1.1.5
+ * Author: Pedro Soares 
+ * Author URI: https://github.com/pedrohrs08/cpf-login-travel
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
