@@ -52,6 +52,13 @@ function cpf_travel_admin_page() {
                             <td><input type="text" name="segments[0][flight_code]" required /></td>
                             <th scope="row"><label>Airline</label></th>
                             <td><input type="text" name="segments[0][airline]" /></td>
+                            <th scope="row"><label>Direction</label></th>
+                            <td>
+                                <select name="segments[0][direction]">
+                                    <option value="ida">Ida</option>
+                                    <option value="volta">Volta</option>
+                                </select>
+                            </td>
                         </tr>
                         <tr class="form-field">
                             <th scope="row"><label>Origin</label></th>
@@ -77,6 +84,13 @@ function cpf_travel_admin_page() {
                                 <td><input type="text" name="segments[<?php echo $i; ?>][flight_code]" value="<?php echo esc_attr($segment->flight_code); ?>" required /></td>
                                 <th scope="row"><label>Airline</label></th>
                                 <td><input type="text" name="segments[<?php echo $i; ?>][airline]" value="<?php echo esc_attr($segment->airline); ?>" /></td>
+                                <th scope="row"><label>Direction</label></th>
+                                <td>
+                                    <select name="segments[<?php echo $i; ?>][direction]">
+                                        <option value="ida" <?php selected($segment->direction, 'ida'); ?>>Ida</option>
+                                        <option value="volta" <?php selected($segment->direction, 'volta'); ?>>Volta</option>
+                                    </select>
+                                </td>
                             </tr>
                             <tr class="form-field">
                                 <th scope="row"><label>Origin</label></th>

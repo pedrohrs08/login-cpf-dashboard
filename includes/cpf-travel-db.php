@@ -28,6 +28,7 @@ function cpf_travel_create_table() {
         destination VARCHAR(50) DEFAULT NULL,
         departure DATETIME DEFAULT NULL,
         arrival DATETIME DEFAULT NULL,
+        direction VARCHAR(10) DEFAULT 'ida' NOT NULL,
         PRIMARY KEY  (id),
         KEY booking_id (booking_id)
     ) $charset_collate;";

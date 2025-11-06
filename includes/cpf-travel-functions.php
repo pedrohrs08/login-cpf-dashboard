@@ -32,6 +32,7 @@ function cpf_travel_add_segment($booking_id, $segment_data) {
         'destination' => isset($segment_data['destination']) ? sanitize_text_field($segment_data['destination']) : null,
         'departure' => isset($segment_data['departure']) ? sanitize_text_field($segment_data['departure']) : null,
         'arrival' => isset($segment_data['arrival']) ? sanitize_text_field($segment_data['arrival']) : null,
+        'direction' => isset($segment_data['direction']) ? sanitize_text_field($segment_data['direction']) : 'ida',
     ];
 
     if ( empty( $fields['flight_code'] ) ) {
