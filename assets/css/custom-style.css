@@ -1,0 +1,19 @@
+
+.flight-segment-block {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.flight-info-group {
+    display: flex;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.flight-info-group > div {
+    flex: 1;
+}

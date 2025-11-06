@@ -9,7 +9,6 @@ function cpf_travel_add_booking_ajax() {
     check_admin_referer('cpf_travel_add_nonce', 'nonce');
 
     $data = [
-        'user_id' => isset($_POST['user_id']) ? intval($_POST['user_id']) : null,
         'cpf' => isset($_POST['cpf']) ? preg_replace('/\\D/','', $_POST['cpf']) : null,
         'status' => isset($_POST['status']) ? sanitize_text_field($_POST['status']) : 'confirmed',
     ];

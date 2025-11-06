@@ -6,12 +6,14 @@ function cpf_travel_user_trips_shortcode( $atts ) {
         return '<p>Faça login para ver suas viagens.</p>';
     }
     $atts = shortcode_atts([ 'per_page' => 10, 'page' => 1 ], $atts, 'user_trips');
-    $user_id = get_current_user_id();
-    $trips = cpf_travel_get_bookings( $user_id, [ 'per_page' => intval($atts['per_page']), 'page' => intval($atts['page']) ] );
+    $cpf = get_user_meta(get_current_user_id(), 'cpf', true);
+    $trips = cpf_travel_get_bookings([ 'cpf' => $cpf, 'per_page' => intval($atts['per_page']), 'page' => intval($atts['page']) ]);
 
     if ( empty( $trips ) ) {
         return '<p>Você ainda não possui viagens cadastradas.</p>';
     }
+
+    $airports = cpf_travel_get_airports();
 
     ob_start();
     echo '<div class="cpf-trips row">';
@@ -23,11 +25,24 @@ function cpf_travel_user_trips_shortcode( $atts ) {
         if ( ! empty($t->segments) ) {
             echo '<hr>';
             foreach ($t->segments as $segment) {
-                echo '<p><strong>Flight:</strong> ' . esc_html($segment->flight_code) . ' <small class="text-muted">' . esc_html($segment->airline) . '</small></p>';
-                echo '<p><strong>Origin:</strong> ' . esc_html($segment->origin) . ' <strong>Destination:</strong> ' . esc_html($segment->destination) . '</p>';
-                if ( $segment->departure ) echo '<p><strong>Departure:</strong> ' . esc_html( date_i18n('d/m/Y H:i', strtotime($segment->departure)) ) . '</p>';
-                if ( $segment->arrival ) echo '<p><strong>Arrival:</strong> ' . esc_html( date_i18n('d/m/Y H:i', strtotime($segment->arrival)) ) . '</p>';
-                echo '<hr>';
+                $origin_name = isset($airports[$segment->origin]) ? $airports[$segment->origin] : $segment->origin;
+                $destination_name = isset($airports[$segment->destination]) ? $airports[$segment->destination] : $segment->destination;
+
+                echo '<div class="flight-segment-block">';
+                echo '<div class="flight-info-group">';
+                echo '<div class="flight-code-information"><strong>Flight:</strong> ' . esc_html($segment->flight_code) . '</div>';
+                echo '<div class="airline-information"><small class="text-muted">' . esc_html($segment->airline) . '</small></div>';
+                echo '</div>';
+                echo '<div class="flight-info-group">';
+                echo '<div class="origin-information"><strong>Origin:</strong> ' . esc_html($origin_name) . '</div>';
+                if ( $segment->departure ) echo '<div class="departure-information"><strong>Departure:</strong> ' . esc_html( date_i18n('d/m/Y H:i', strtotime($segment->departure)) ) . '</div>';
+                echo '</div>';
+                echo '<div class="flight-info-group">';
+                echo '<div class="destination-information"><strong>Destination:</strong> ' . esc_html($destination_name) . '</div>';
+                if ( $segment->arrival ) echo '<div class="arrival-information"><strong>Arrival:</strong> ' . esc_html( date_i18n('d/m/Y H:i', strtotime($segment->arrival)) ) . '</div>';
+                echo '</div>';
+                echo '</div>';
+
             }
         }
 

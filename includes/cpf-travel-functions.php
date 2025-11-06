@@ -7,17 +7,9 @@ function cpf_travel_add_booking( $data ) {
     $table = $wpdb->prefix . 'travel_bookings';
 
     $cpf = isset($data['cpf']) && !empty($data['cpf']) ? preg_replace('/\D/','', $data['cpf']) : null;
-    $user_id = isset($data['user_id']) && !empty($data['user_id']) ? intval($data['user_id']) : null;
-
-    if ( $cpf && ! $user_id ) {
-        $found_user_id = $wpdb->get_var( $wpdb->prepare("SELECT user_id FROM {$wpdb->usermeta} WHERE meta_key = 'cpf' AND meta_value = %s LIMIT 1", $cpf) );
-        $user_id = $found_user_id ? (int) $found_user_id : null;
-    }
 
     $fields = [
-        'user_id' => $user_id,
         'cpf' => $cpf,
-        'status' => isset($data['status']) ? sanitize_text_field($data['status']) : 'confirmed',
     ];
 
     $inserted = $wpdb->insert( $table, $fields );
@@ -49,7 +41,7 @@ function cpf_travel_add_segment($booking_id, $segment_data) {
     return $wpdb->insert( $table, $fields );
 }
 
-function cpf_travel_get_bookings( $user_id = null, $args = [] ) {
+function cpf_travel_get_bookings( $args = [] ) {
    global $wpdb;
     $table = $wpdb->prefix . 'travel_bookings';
 
@@ -63,13 +55,11 @@ function cpf_travel_get_bookings( $user_id = null, $args = [] ) {
 
     $order = in_array(strtoupper($args['order']), ['ASC','DESC']) ? strtoupper($args['order']) : 'DESC';
 
-    if ( $user_id ) {
-        $query = $wpdb->prepare( "SELECT * FROM $table WHERE user_id = %d ORDER BY departure $order LIMIT %d OFFSET %d", $user_id, intval($args['per_page']), $offset );
-    }else if ( isset($args['cpf']) && ! empty($args['cpf']) ) {
-        $cpf = preg_replace('/\\D/','', $args['cpf']);
-        $query = $wpdb->prepare( "SELECT * FROM $table WHERE cpf = %s ORDER BY departure $order LIMIT %d OFFSET %d", $cpf, intval($args['per_page']), $offset );
+    if ( isset($args['cpf']) && ! empty($args['cpf']) ) {
+        $cpf = preg_replace('/\D/','', $args['cpf']);
+        $query = $wpdb->prepare( "SELECT * FROM $table WHERE cpf = %s ORDER BY created_at $order LIMIT %d OFFSET %d", $cpf, intval($args['per_page']), $offset );
     }else {
-        $query = $wpdb->prepare( "SELECT * FROM $table ORDER BY departure $order LIMIT %d OFFSET %d", intval($args['per_page']), $offset );
+        $query = $wpdb->prepare( "SELECT * FROM $table ORDER BY created_at $order LIMIT %d OFFSET %d", intval($args['per_page']), $offset );
     }
 
     $rows = $wpdb->get_results( $query );
@@ -88,21 +78,103 @@ function cpf_travel_get_segments($booking_id) {
     return $wpdb->get_results($query);
 }
 
-function travel_exists($user_id = null, $args = []){
-    return ! empty(cpf_travel_get_bookings($user_id, $args));
+function travel_exists($args = []){
+    return ! empty(cpf_travel_get_bookings($args));
 }
 
-function cpf_travel_sync_users() {
-    global $wpdb;
-    $table = $wpdb->prefix . 'travel_bookings';
-
-    $rows = $wpdb->get_results( "SELECT id, cpf FROM $table WHERE user_id IS NULL AND cpf IS NOT NULL" );
-    if ( empty($rows) ) return;
-
-    foreach ( $rows as $r ) {
-        $user_id = $wpdb->get_var( $wpdb->prepare("SELECT user_id FROM {$wpdb->usermeta} WHERE meta_key = 'cpf' AND meta_value = %s LIMIT 1", $r->cpf) );
-        if ( $user_id ) {
-            $wpdb->update( $table, [ 'user_id' => $user_id ], [ 'id' => $r->id ] );
-        }
-    }
+function cpf_travel_get_airports() {
+    $airports = [
+        'GRU' => 'São Paulo Guarulhos Airport',
+        'CGH' => 'São Paulo Congonhas Airport',
+        'BSB' => 'Brasília Airport',
+        'GIG' => 'Rio de Janeiro Galeão Airport',
+        'CNF' => 'Belo Horizonte Tancredo Neves Airport',
+        'VCP' => 'Campinas Viracopos Airport',
+        'SDU' => 'Rio de Janeiro Santos Dumont Airport',
+        'REC' => 'Recife Airport',
+        'POA' => 'Porto Alegre Airport',
+        'SSA' => 'Salvador Airport',
+        'FOR' => 'Fortaleza Airport',
+        'CWB' => 'Curitiba Afonso Pena Airport',
+        'BEL' => 'Belém Val-de-Cans Airport',
+        'FLN' => 'Florianópolis Hercílio Luz Airport',
+        'VIX' => 'Vitória Eurico de Aguiar Salles Airport',
+        'GYN' => 'Goiânia Santa Genoveva Airport',
+        'MAO' => 'Manaus Eduardo Gomes Airport',
+        'CGB' => 'Cuiabá Marechal Rondon Airport',
+        'NAT' => 'Natal Aluízio Alves Airport',
+        'IGU' => 'Foz do Iguaçu Cataratas Airport',
+        'MCZ' => 'Maceió Zumbi dos Palmares Airport',
+        'BPS' => 'Porto Seguro Airport',
+        'NVT' => 'Navegantes Ministro Victor Konder Airport',
+        'SLZ' => 'São Luís Marechal Cunha Machado Airport',
+        'CGR' => 'Campo Grande International Airport',
+        'JPA' => 'João Pessoa Presidente Castro Pinto Airport',
+        'AJU' => 'Aracaju Santa Maria Airport',
+        'THE' => 'Teresina Senador Petrônio Portella Airport',
+        'UDI' => 'Uberlândia Ten. Cel. Av. César Bombonato Airport',
+        'LDB' => 'Londrina Governador José Richa Airport',
+        'RAO' => 'Ribeirão Preto Dr. Leite Lopes Airport',
+        'PVH' => 'Porto Velho Governador Jorge Teixeira de Oliveira Airport',
+        'JOI' => 'Joinville-Lauro Carneiro de Loyola Airport',
+        'AFL' => 'Alta Floresta Piloto Oswaldo Marques Dias Airport',
+        'ATM' => 'Altamira Airport',
+        'APS' => 'Anápolis Airport',
+        'APU' => 'Apucarana Airport',
+        'ARU' => 'Araçatuba Dario Guarita State Airport',
+        'AUX' => 'Araguaína Regional Airport',
+        'APX' => 'Arapongas Alberto Bertelli Airport',
+        'AQA' => 'Araraquara Airport',
+        'AAX' => 'Araxá Romeu Zema Airport',
+        'BGX' => 'Bagé Comandante Gustavo Kraemer Airport',
+        'BSS' => 'Balsas Airport',
+        'BAZ' => 'Barcelos Airport',
+        'BQQ' => 'Barra Airport',
+        'BDC' => 'Barra do Corda Airport',
+        'BPG' => 'Barra do Garças Airport',
+        'BRA' => 'Barreiras Airport',
+        'BRB' => 'Barreirinhas Airport',
+        'BAT' => 'Barretos Chafei Amsei Airport',
+        'BAU' => 'Bauru Airport',
+        'JTC' => 'Bauru - Arealva Airport',
+        'BVM' => 'Belmonte Airport',
+        'PLU' => 'Belo Horizonte Pampulha Airport',
+        'BNU' => 'Blumenau Airport',
+        'BVB' => 'Boa Vista Atlas Brasil Cantanhede Airport',
+        'BCR' => 'Boca do Acre Novo Campo Airport',
+        'LAZ' => 'Bom Jesus da Lapa Airport',
+        'BYO' => 'Bonito Airport',
+        'RBB' => 'Borba Airport',
+        'BJP' => 'Bragança Paulista Estadual Arthur Siqueira Airport',
+        'BVS' => 'Breves Airport',
+        'BMS' => 'Brumado Sócrates Mariani Bittencourt Airport',
+        'CFB' => 'Cabo Frio International Airport',
+        'CAU' => 'Caruaru Airport',
+        'CBW' => 'Campo Mourão Airport',
+        'CCI' => 'Concórdia Airport',
+        'CCM' => 'Criciúma Forquilhinha Airport',
+        'CCX' => 'Cáceres Airport',
+        'CFC' => 'Caçador Carlos Alberto da Costa Neves Airport',
+        'QGS' => 'Alagoinhas Airport',
+        'ALQ' => 'Alegrete Novo Airport',
+        'ALT' => 'Alenquer Airport',
+        'AMJ' => 'Almenara Cirilo Queiróz Airport',
+        'APY' => 'Alto Parnaíba Airport',
+        'ARS' => 'Aragarças Estância das Cascatas Airport',
+        'APQ' => 'Arapiraca Airport',
+        'AAG' => 'Arapoti Airport',
+        'AIR' => 'Aripuanã Airport',
+        'AQM' => 'Ariquemes Nova Vida Airport',
+        'AAI' => 'Arraias Airport',
+        'ZFU' => 'Arujá Unifly Airport',
+        'AIF' => 'Assis Marcelo Pires Halzhausen Airport',
+        'QVP' => 'Avaré-Arandu Airport',
+        'QAK' => 'Barbacena Major Brigadeiro Doorgal Borges Airport',
+        'QXC' => 'Barra De Santo Antonio Fazenda São Braz Airport',
+        'GGB' => 'Água Boa Frederico Carlos Müller Airport',
+        'PHB' => 'Parnaíba-Prefeito Dr. João Silva Filho International Airport',
+        'PGZ' => 'Ponta Grossa Comte. Antonio Amilton Beraldo Airport',
+        'PHI' => 'Pinheiro Airport',
+    ];
+    return $airports;
 }

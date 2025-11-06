@@ -8,12 +8,10 @@ function cpf_travel_create_table() {
 
     $sql = "CREATE TABLE $table (
         id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-        user_id BIGINT(20) UNSIGNED NULL,
-        cpf VARCHAR(14) NULL UNIQUE,
+        cpf VARCHAR(14) NULL,
         status VARCHAR(32) DEFAULT 'confirmed',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY  (id),
-        KEY user_id (user_id),
         KEY cpf (cpf)
     ) $charset_collate;";
 
