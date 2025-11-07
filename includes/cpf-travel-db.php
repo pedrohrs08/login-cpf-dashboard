@@ -11,6 +11,7 @@ function cpf_travel_create_table() {
         cpf VARCHAR(14) NULL,
         status VARCHAR(32) DEFAULT 'confirmed',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        reservation VARCHAR(255) NULL,
         PRIMARY KEY  (id),
         KEY cpf (cpf)
     ) $charset_collate;";

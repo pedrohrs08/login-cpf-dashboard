@@ -40,6 +40,10 @@ function cpf_travel_admin_page() {
                     <th scope="row"><label for="cpf">CPF</label></th>
                     <td><input type="tel" name="cpf" id="cpf" pattern="[0-9]*" value="<?php echo $booking ? esc_attr($booking->cpf) : ''; ?>" /></td>
                 </tr>
+                <tr class="form-field">
+                    <th scope="row"><label for="reservation">Reservation</label></th>
+                    <td><input type="text" name="reservation" id="reservation" value="<?php echo $booking ? esc_attr($booking->reservation) : ''; ?>" /></td>
+                </tr>
             </table>
 
             <h2>Voos</h2>
@@ -128,7 +132,7 @@ function cpf_travel_admin_page() {
                 <tr>
                     <th>ID</th>
                     <th>CPF</th>
-
+                    <th>Reservation</th>
                     <th>Segments</th>
                     <th>Ações</th>
                 </tr>
@@ -139,9 +143,10 @@ function cpf_travel_admin_page() {
                 foreach ($all_bookings as $b) {
                     echo '<tr>';
                     echo '<td>' . $b->id . '</td>';
-                    echo '<td>' . esc_html($b->cpf) . '</td>';
-
-                    echo '<td>' . count($b->segments) . '</td>';
+                                        echo '<td>' . esc_html($b->cpf) . '</td>';
+                                        echo '<td>' . esc_html($b->reservation) . '</td>';
+                    
+                                        echo '<td>' . count($b->segments) . '</td>';
                     echo '<td>';
                     echo '<a href="' . esc_url(add_query_arg(['page' => 'cpf-travel-bookings', 'booking_id' => $b->id], admin_url('admin.php'))) . '">Editar</a> | ';
                     echo '<a href="' . esc_url(wp_nonce_url(add_query_arg(['action' => 'cpf_travel_delete_booking', 'booking_id' => $b->id], admin_url('admin-post.php')), 'cpf_travel_delete_nonce')) . '" onclick="return confirm(\'Tem certeza que deseja deletar este booking?\')">Deletar</a>';
@@ -178,6 +183,7 @@ function cpf_travel_admin_handle_form() {
 
     $data = [
         'cpf' => $cpf ? $cpf : null,
+        'reservation' => isset($_POST['reservation']) ? sanitize_text_field($_POST['reservation']) : null,
     ];
 
     global $wpdb;

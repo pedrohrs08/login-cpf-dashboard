@@ -10,6 +10,7 @@ function cpf_travel_add_booking( $data ) {
 
     $fields = [
         'cpf' => $cpf,
+        'reservation' => isset($data['reservation']) ? sanitize_text_field($data['reservation']) : null,
     ];
 
     $inserted = $wpdb->insert( $table, $fields );
