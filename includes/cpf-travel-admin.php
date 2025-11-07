@@ -44,6 +44,10 @@ function cpf_travel_admin_page() {
                     <th scope="row"><label for="reservation">Reservation</label></th>
                     <td><input type="text" name="reservation" id="reservation" value="<?php echo $booking ? esc_attr($booking->reservation) : ''; ?>" /></td>
                 </tr>
+                <tr class="form-field">
+                    <th scope="row"><label for="more_information">More Information</label></th>
+                    <td><textarea name="more_information" id="more_information" rows="5" cols="50"><?php echo $booking ? esc_textarea($booking->more_information) : ''; ?></textarea></td>
+                </tr>
             </table>
 
             <h2>Voos</h2>
@@ -133,6 +137,7 @@ function cpf_travel_admin_page() {
                     <th>ID</th>
                     <th>CPF</th>
                     <th>Reservation</th>
+                    <th>More Information</th>
                     <th>Segments</th>
                     <th>Ações</th>
                 </tr>
@@ -144,7 +149,8 @@ function cpf_travel_admin_page() {
                     echo '<tr>';
                     echo '<td>' . $b->id . '</td>';
                                         echo '<td>' . esc_html($b->cpf) . '</td>';
-                                        echo '<td>' . esc_html($b->reservation) . '</td>';
+                    echo '<td>' . esc_html($b->reservation) . '</td>';
+                    echo '<td>' . esc_html($b->more_information) . '</td>';
                     
                                         echo '<td>' . count($b->segments) . '</td>';
                     echo '<td>';
@@ -184,6 +190,7 @@ function cpf_travel_admin_handle_form() {
     $data = [
         'cpf' => $cpf ? $cpf : null,
         'reservation' => isset($_POST['reservation']) ? sanitize_text_field($_POST['reservation']) : null,
+        'more_information' => isset($_POST['more_information']) ? sanitize_textarea_field($_POST['more_information']) : null,
     ];
 
     global $wpdb;
